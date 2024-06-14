@@ -11,6 +11,8 @@
         <link rel="stylesheet" href="css/L.Control.Locate.min.css">
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
         <style>
         html, body, #map {
             width: 100%;
@@ -19,7 +21,7 @@
             margin: 0;
         }
         </style>
-        <title></title>
+        <title>WebGIS PTN Surabaya</title>
     </head>
     <body>
         <div id="map">
@@ -35,8 +37,10 @@
         <script src="js/rbush.min.js"></script>
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
         <script src="data/aksesibilitas_univunion_1.js"></script>
-        <script src="data/univ_surabaya_2.js"></script>
+        <script src="data/PTNdiSurabaya_2.js"></script>
         <script>
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
@@ -72,10 +76,30 @@
 				popup._contentNode.classList.remove('media');
 			}
 		}
+        var title = new L.Control({'position':'topright'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>WebGIS PTN Surabaya</h2>';
+        };
+        title.addTo(map);
         var zoomControl = L.control.zoom({
             position: 'topleft'
         }).addTo(map);
         L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'feet',
+            secondaryLengthUnit: 'miles',
+            primaryAreaUnit: 'sqfeet',
+            secondaryAreaUnit: 'sqmiles'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
             if (bounds_group.getLayers().length) {
@@ -115,7 +139,7 @@
                     return {
                 pane: 'pane_aksesibilitas_univunion_1',
                 opacity: 1,
-                color: 'rgba(127,92,215,1.0)',
+                color: 'rgba(229,182,63,1.0)',
                 dashArray: '',
                 lineCap: 'square',
                 lineJoin: 'bevel',
@@ -128,7 +152,7 @@
                     return {
                 pane: 'pane_aksesibilitas_univunion_1',
                 opacity: 1,
-                color: 'rgba(52,206,95,1.0)',
+                color: 'rgba(176,53,225,1.0)',
                 dashArray: '',
                 lineCap: 'square',
                 lineJoin: 'bevel',
@@ -141,7 +165,7 @@
                     return {
                 pane: 'pane_aksesibilitas_univunion_1',
                 opacity: 1,
-                color: 'rgba(226,91,33,1.0)',
+                color: 'rgba(129,219,193,1.0)',
                 dashArray: '',
                 lineCap: 'square',
                 lineJoin: 'bevel',
@@ -166,8 +190,11 @@
         });
         bounds_group.addLayer(layer_aksesibilitas_univunion_1);
         map.addLayer(layer_aksesibilitas_univunion_1);
-        function pop_univ_surabaya_2(feature, layer) {
+        function pop_PTNdiSurabaya_2(feature, layer) {
             var popupContent = '<table>\
+                    <tr>\
+                        <td colspan="2">' + (feature.properties['fid'] !== null ? autolinker.link(feature.properties['fid'].toLocaleString()) : '') + '</td>\
+                    </tr>\
                     <tr>\
                         <th scope="row">Nama</th>\
                         <td>' + (feature.properties['Nama'] !== null ? autolinker.link(feature.properties['Nama'].toLocaleString()) : '') + '</td>\
@@ -175,6 +202,22 @@
                     <tr>\
                         <th scope="row">Kampus</th>\
                         <td>' + (feature.properties['Kampus'] !== null ? autolinker.link(feature.properties['Kampus'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Ranking QS</th>\
+                        <td>' + (feature.properties['Ranking QS'] !== null ? autolinker.link(feature.properties['Ranking QS'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tahun Berdiri</th>\
+                        <td>' + (feature.properties['Tahun Berdiri'] !== null ? autolinker.link(feature.properties['Tahun Berdiri'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Fakultas</th>\
+                        <td>' + (feature.properties['Fakultas'] !== null ? autolinker.link(feature.properties['Fakultas'].toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Foto</th>\
+                        <td>' + (feature.properties['Foto'] !== null ? '<img src="images/' + String(feature.properties['Foto']).replace(/[\\\/:]/g, '_').trim() + '">' : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -184,11 +227,11 @@
 			layer.bindPopup(content, { maxHeight: 400 });
         }
 
-        function style_univ_surabaya_2_0(feature) {
+        function style_PTNdiSurabaya_2_0(feature) {
             switch(String(feature.properties['Nama'])) {
                 case 'ITS':
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -198,13 +241,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(88,140,229,1.0)',
+                fillColor: 'rgba(121,228,189,1.0)',
                 interactive: true,
             }
                     break;
                 case 'UIN Sunan Ampel':
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -214,13 +257,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(125,224,188,1.0)',
+                fillColor: 'rgba(235,107,156,1.0)',
                 interactive: true,
             }
                     break;
                 case 'UNAIR':
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -230,13 +273,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(173,120,204,1.0)',
+                fillColor: 'rgba(83,130,204,1.0)',
                 interactive: true,
             }
                     break;
                 case 'UNESA':
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -246,13 +289,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(210,60,115,1.0)',
+                fillColor: 'rgba(220,179,113,1.0)',
                 interactive: true,
             }
                     break;
                 case 'UPNV Jatim':
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -262,13 +305,13 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(232,194,127,1.0)',
+                fillColor: 'rgba(90,209,21,1.0)',
                 interactive: true,
             }
                     break;
                 default:
                     return {
-                pane: 'pane_univ_surabaya_2',
+                pane: 'pane_PTNdiSurabaya_2',
                 radius: 4.0,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
@@ -278,35 +321,45 @@
                 weight: 1,
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(123,229,61,1.0)',
+                fillColor: 'rgba(158,82,206,1.0)',
                 interactive: true,
             }
                     break;
             }
         }
-        map.createPane('pane_univ_surabaya_2');
-        map.getPane('pane_univ_surabaya_2').style.zIndex = 402;
-        map.getPane('pane_univ_surabaya_2').style['mix-blend-mode'] = 'normal';
-        var layer_univ_surabaya_2 = new L.geoJson(json_univ_surabaya_2, {
+        map.createPane('pane_PTNdiSurabaya_2');
+        map.getPane('pane_PTNdiSurabaya_2').style.zIndex = 402;
+        map.getPane('pane_PTNdiSurabaya_2').style['mix-blend-mode'] = 'normal';
+        var layer_PTNdiSurabaya_2 = new L.geoJson(json_PTNdiSurabaya_2, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_univ_surabaya_2',
-            layerName: 'layer_univ_surabaya_2',
-            pane: 'pane_univ_surabaya_2',
-            onEachFeature: pop_univ_surabaya_2,
+            dataVar: 'json_PTNdiSurabaya_2',
+            layerName: 'layer_PTNdiSurabaya_2',
+            pane: 'pane_PTNdiSurabaya_2',
+            onEachFeature: pop_PTNdiSurabaya_2,
             pointToLayer: function (feature, latlng) {
                 var context = {
                     feature: feature,
                     variables: {}
                 };
-                return L.circleMarker(latlng, style_univ_surabaya_2_0(feature));
+                return L.circleMarker(latlng, style_PTNdiSurabaya_2_0(feature));
             },
         });
-        bounds_group.addLayer(layer_univ_surabaya_2);
-        map.addLayer(layer_univ_surabaya_2);
+        bounds_group.addLayer(layer_PTNdiSurabaya_2);
+        map.addLayer(layer_PTNdiSurabaya_2);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
         var baseMaps = {};
         var overlaysTree = [
-            {label: 'univ_surabaya<br /><table><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_ITS0.png" /></td><td>ITS</td></tr><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_UINSunanAmpel1.png" /></td><td>UIN Sunan Ampel</td></tr><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_UNAIR2.png" /></td><td>UNAIR</td></tr><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_UNESA3.png" /></td><td>UNESA</td></tr><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_UPNVJatim4.png" /></td><td>UPNV Jatim</td></tr><tr><td style="text-align: center;"><img src="legend/univ_surabaya_2_5.png" /></td><td></td></tr></table>', layer: layer_univ_surabaya_2},
+            {label: 'PTN di Surabaya<br /><table><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_ITS0.png" /></td><td>ITS</td></tr><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_UINSunanAmpel1.png" /></td><td>UIN Sunan Ampel</td></tr><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_UNAIR2.png" /></td><td>UNAIR</td></tr><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_UNESA3.png" /></td><td>UNESA</td></tr><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_UPNVJatim4.png" /></td><td>UPNV Jatim</td></tr><tr><td style="text-align: center;"><img src="legend/PTNdiSurabaya_2_5.png" /></td><td></td></tr></table>', layer: layer_PTNdiSurabaya_2},
             {label: 'aksesibilitas_univ — union<br /><table><tr><td style="text-align: center;"><img src="legend/aksesibilitas_univunion_1_12km15menit0.png" /></td><td>1,2km (15 menit)</td></tr><tr><td style="text-align: center;"><img src="legend/aksesibilitas_univunion_1_24km30menit1.png" /></td><td>2,4km (30 menit)</td></tr><tr><td style="text-align: center;"><img src="legend/aksesibilitas_univunion_1_2.png" /></td><td></td></tr></table>', layer: layer_aksesibilitas_univunion_1},
             {label: "OpenStreetMap", layer: layer_OpenStreetMap_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
